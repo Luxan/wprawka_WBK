@@ -1,17 +1,25 @@
-package WebInitializer;
+package initializer;
 
 import com.gargoylesoftware.htmlunit.*;
 
 
 public class WebClientInitializer {
-    protected WebClient webClient = new WebClient(BrowserVersion.FIREFOX_45);
 
-    public static WebClientInitializer getProxyInitializer(String proxyHostname, int proxyPort) {
-        return new WebClientInitializerWithProxy(proxyHostname, proxyPort);
-    }
+    private final WebClient webClient = new WebClient(BrowserVersion.FIREFOX_45);
 
     public static WebClientInitializer getNonProxyInitializer() {
         return new WebClientInitializer();
+    }
+
+    public static WebClientInitializer getProxyInitializer(String hostname, int port) {
+        WebClientInitializer initializer = new WebClientInitializer();
+        initializer.setUpWebClientProxyOptions(hostname, port);
+        return initializer;
+    }
+
+    private void setUpWebClientProxyOptions(String hostname, int port) {
+        ProxyConfig proxyConfig = new ProxyConfig(hostname, port);
+        webClient.getOptions().setProxyConfig(proxyConfig);
     }
 
     public WebClient getWebClient() {
@@ -22,13 +30,9 @@ public class WebClientInitializer {
         setUpWebClient();
     }
 
-    protected void setUpWebClient() {
+    private void setUpWebClient() {
         setWebClientOptions();
         enableCookieManager();
-    }
-
-    private void enableCookieManager() {
-            webClient.getCookieManager().setCookiesEnabled(true);
     }
 
     private void setWebClientOptions() {
@@ -38,6 +42,10 @@ public class WebClientInitializer {
         options.setCssEnabled(false);
         options.setThrowExceptionOnScriptError(false);
         options.setThrowExceptionOnFailingStatusCode(false);
+    }
+
+    private void enableCookieManager() {
+        webClient.getCookieManager().setCookiesEnabled(true);
     }
 
 }

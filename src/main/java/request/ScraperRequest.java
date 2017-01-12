@@ -12,13 +12,13 @@ import java.net.URL;
 import java.util.*;
 
 
-public class Request {
+public class ScraperRequest {
 
-    private WebClient webClient;
-    private WebRequest webRequest;
+    private final WebClient webClient;
+    private final WebRequest webRequest;
     private HtmlPage ansPage;
 
-    protected Request(WebClient webClient, WebRequest webRequest) {
+    private ScraperRequest(WebClient webClient, WebRequest webRequest) {
         this.webClient = webClient;
         this.webRequest = webRequest;
     }
@@ -27,7 +27,7 @@ public class Request {
         try {
             ansPage = webClient.getPage(webRequest);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -35,48 +35,50 @@ public class Request {
         return ansPage;
     }
 
-    public static Builder getBuilder() {
+    static Builder getBuilder() {
         return new Builder();
     }
 
-    public static class Builder {
+    static class Builder {
 
         private WebClient webClient;
         private WebRequest webRequest;
         private String url;
         private HttpMethod httpMethod;
-        private List<NameValuePair> parameters = new ArrayList<>();
-        protected Map<String, String> headers = new HashMap<>();
+        private final List<NameValuePair> parameters = new ArrayList<>();
+        private final Map<String, String> headers = new HashMap<>();
 
-        protected void setStandardHeaders() {}
+        Builder setPostMethod() {
+            this.httpMethod = HttpMethod.POST;
+            return this;
+        }
 
-        public Builder setParameter(String name, String value) {
+        Builder setGetMethod() {
+            this.httpMethod = HttpMethod.GET;
+            return this;
+        }
+
+        Builder setParameter(String name, String value) {
             this.parameters.add(new NameValuePair(name, value));
             return this;
         }
 
-        protected Builder setHttpMethod(HttpMethod httpMethod) {
-            this.httpMethod = httpMethod;
-            return this;
-        }
-
-        public Builder setUrl(String url) {
+        Builder setUrl(String url) {
             this.url = url;
             return this;
         }
 
-        public Builder setWebClient(WebClient webClient) {
+        Builder setWebClient(WebClient webClient) {
             this.webClient = webClient;
             return this;
         }
 
-        public Request build() {
-            setStandardHeaders();
+        ScraperRequest build() {
             try {
                 webRequest = new WebRequest(new URL(url), httpMethod);
                 webRequest.setRequestParameters(parameters);
                 webRequest.setAdditionalHeaders(headers);
-                return new Request(webClient, webRequest);
+                return new ScraperRequest(webClient, webRequest);
             } catch (MalformedURLException e) {
                 throw new RuntimeException();
             }
